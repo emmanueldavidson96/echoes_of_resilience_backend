@@ -186,6 +186,16 @@ export const getAdminUsers = async (req, res, next) => {
   }
 };
 
+// Get all youth users (admin/clinician)
+export const getAllYouthUsers = async (req, res, next) => {
+  try {
+    const youthUsers = await User.find({ role: 'youth' }).select('firstName lastName email phoneNumber location');
+    sendSuccess(res, 200, 'Youth users retrieved successfully', youthUsers);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Get coach profile details (admin)
 export const getCoachProfileDetails = async (req, res, next) => {
   try {

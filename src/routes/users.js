@@ -21,7 +21,8 @@ import {
   getYouthActiveMissions,
   getYouthProfileDetails,
   getAdminUsers,
-  getCoachProfileDetails
+  getCoachProfileDetails,
+  getAllYouthUsers
 } from '../controllers/userController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -37,6 +38,7 @@ router.delete('/account', deleteUserAccount);
 
 // Admin listing for coach/admin/parent/clinician messaging
 router.get('/admins', authorize('coach', 'admin', 'parent', 'clinician'), getAdminUsers);
+router.get('/youth/list/all', authorize('admin', 'clinician'), getAllYouthUsers);
 
 // Parent management routes (admin)
 router.put('/parents/:parentId/add-youth', authorize('admin'), addYouthToParent);

@@ -16,6 +16,8 @@ import moodRoutes from './routes/moods.js';
 import alertRoutes from './routes/alerts.js';
 import messageRoutes from './routes/messages.js';
 import missionAssignmentRoutes from './routes/missionAssignments.js';
+import surveyRoutes from './routes/surveys.js';
+import surveyAssignmentRoutes from './routes/surveyAssignments.js';
 
 // Load environment variables
 dotenv.config();
@@ -28,12 +30,34 @@ connectDB();
 
 // Middleware
 app.use(morgan('combined'));
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+
+const defaultOrigins = [
+  'http://localhost:3000',
+  'https://www.echoesofresilience.co',
+  'https://echoesofresilience.co'
+];
+
+const envOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 204
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -49,6 +73,8 @@ app.use('/api/moods', moodRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/mission-assignments', missionAssignmentRoutes);
+app.use('/api/surveys', surveyRoutes);
+app.use('/api/survey-assignments', surveyAssignmentRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
