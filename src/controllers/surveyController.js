@@ -121,31 +121,123 @@ const defaultSurveys = [
   },
   {
     title: 'Survey 2: Youth Experience Check-in',
-    description: 'Tell us how you are feeling about the program.',
+    description: 'Share how your Wellness Navigator can help you.',
     version: '1.0',
     isActive: true,
     questions: [
       {
-        prompt: 'What is one thing you enjoyed most?',
+        prompt: "What is your coach(s) name?",
         type: 'text',
         required: true,
         order: 1,
+        image: '/assets/3d-portrait-people-removebg-preview.png',
+        placeholder: 'Coach name'
+      },
+      {
+        prompt: "What is today's date?",
+        type: 'date',
+        required: true,
+        order: 2,
+        image: '/assets/whatstodaysdatesurvey2.jpg'
+      },
+      {
+        prompt: 'What is your full name?',
+        type: 'text',
+        required: true,
+        order: 3,
+        image: '/assets/whatsyournamesurvey2.jpg',
+        placeholder: 'Full name'
+      },
+      {
+        prompt: 'What grade are you in?',
+        type: 'single-choice',
+        required: true,
+        order: 4,
+        options: [
+          { label: 'K/1st', value: 'K/1st', image: '/assets/K1stsurvey2.jpg' },
+          { label: '2nd', value: '2nd', image: '/assets/kindergarten.jpg' },
+          { label: '3rd', value: '3rd', image: '/assets/3rdgradesurvey2.jpg' },
+          { label: '4th', value: '4th', image: '/assets/4thgradesurvey2.jpg' },
+          { label: '5th', value: '5th', image: '/assets/5thgradesurvey2.png' },
+          { label: '6th', value: '6th', image: '/assets/6thgradesurvey2.png' },
+          { label: '7th', value: '7th', image: '/assets/7thgradesurvey2.png' },
+          { label: '8th', value: '8th', image: '/assets/8thgradesurvey2.png' },
+          { label: '9th', value: '9th', image: '/assets/9thgradesurvey2.png' },
+          { label: '10th', value: '10th', image: '/assets/10thgradesurvey2.png' },
+          { label: '11th', value: '11th', image: '/assets/11thgradesurvey2.png' },
+          { label: '12th', value: '12th', image: '/assets/12thgradesurvey2.png' }
+        ]
+      },
+      {
+        prompt: 'How can your Wellness Navigator help you? Check the boxes below.',
+        type: 'multi-choice',
+        required: true,
+        order: 5,
+        allowMultiple: true,
+        options: [
+          { label: 'Dealing with my feelings', value: 'Dealing with my feelings', image: '/assets/dealingwithmyfeelingssurvey2.png' },
+          { label: 'Handling my worries', value: 'Handling my worries', image: '/assets/handlingmyworriessurvey2.png' },
+          { label: 'Making and Keeping friends', value: 'Making and Keeping friends', image: '/assets/makingandkeepingfriendssurvey2.png' },
+          { label: 'Making good choices', value: 'Making good choices', image: '/assets/makinggoodchoicessurvey2.png' },
+          { label: 'Solving problems', value: 'Solving problems', image: '/assets/solvingproblemssurvey2.png' },
+          { label: 'My family life at home', value: 'My family life at home', image: '/assets/myfamilylifeathomesurvey2.png' },
+          { label: 'Others', value: 'Others' }
+        ]
+      },
+      {
+        prompt: 'How else can your Wellness Navigator help you?',
+        type: 'text',
+        required: false,
+        order: 6,
+        image: '/assets/howcanwehelpyousurvey2.png',
         placeholder: 'Share your thoughts'
+      },
+      {
+        prompt: 'Site Location',
+        type: 'select',
+        required: true,
+        order: 7,
+        options: [
+          { label: 'Jack McLean', value: 'Jack McLean' },
+          { label: 'Jake Gaither', value: 'Jake Gaither' },
+          { label: 'Walker Ford', value: 'Walker Ford' },
+          { label: 'Palmer Munroe Teen Center', value: 'Palmer Munroe Teen Center' },
+          { label: 'Nims Middle School', value: 'Nims Middle School' },
+          { label: 'Changing Lives', value: 'Changing Lives' },
+          { label: 'Creative Minds', value: 'Creative Minds' },
+          { label: 'Oxford Learning', value: 'Oxford Learning' },
+          { label: 'OLL', value: 'OLL' },
+          { label: 'Dade Street', value: 'Dade Street' },
+          { label: 'Lavern Payne', value: 'Lavern Payne' },
+          { label: 'Other', value: 'Other' }
+        ]
+      },
+      {
+        prompt: 'Thank you for completing the survey!',
+        type: 'info',
+        required: false,
+        order: 8,
+        image: '/assets/thankyoupostsurvey2.jpg'
       }
     ]
   }
 ];
 
-const seedSurveysIfEmpty = async () => {
-  const count = await Survey.countDocuments();
-  if (count === 0) {
-    await Survey.insertMany(defaultSurveys);
-  }
+const ensureDefaultSurveys = async () => {
+  await Promise.all(
+    defaultSurveys.map(async (survey) => {
+      await Survey.findOneAndUpdate(
+        { title: survey.title },
+        { $set: survey },
+        { new: true, upsert: true }
+      );
+    })
+  );
 };
 
 export const getSurveys = async (req, res, next) => {
   try {
-    await seedSurveysIfEmpty();
+    await ensureDefaultSurveys();
     const surveys = await Survey.find({ isActive: true }).sort({ createdAt: -1 });
     sendSuccess(res, 200, 'Surveys retrieved successfully', surveys);
   } catch (error) {
@@ -155,7 +247,7 @@ export const getSurveys = async (req, res, next) => {
 
 export const getSurveyById = async (req, res, next) => {
   try {
-    await seedSurveysIfEmpty();
+    await ensureDefaultSurveys();
     const { surveyId } = req.params;
     const survey = await Survey.findById(surveyId);
     if (!survey) {
