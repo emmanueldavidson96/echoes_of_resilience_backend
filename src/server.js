@@ -100,7 +100,7 @@ app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`\n🚀 Echoes of Resilience Backend Server Running`);
+  console.log(`\n🚀 Echoes of Resiliences Backend Server Running`);
   console.log(`📍 Server: http://localhost:${PORT}`);
   console.log(`🔗 Environment: ${process.env.NODE_ENV || 'development'}\n`);
 });
