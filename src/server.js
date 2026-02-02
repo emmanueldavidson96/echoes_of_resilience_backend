@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
+import cron from 'node-cron';
 import connectDB from './config/database.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -103,5 +104,30 @@ app.listen(PORT, () => {
   console.log(`📍 Server: http://localhost:${PORT}`);
   console.log(`🔗 Environment: ${process.env.NODE_ENV || 'development'}\n`);
 });
+
+const keepAliveEnabled = process.env.KEEP_ALIVE_ENABLED === 'true';
+const keepAliveUrl = process.env.KEEP_ALIVE_URL || `http://localhost:${PORT}/health`;
+const keepAliveCron = process.env.KEEP_ALIVE_CRON || '*/14 * * * *';
+
+if (keepAliveEnabled) {
+  if (typeof fetch !== 'function') {
+    console.warn('⚠️ Keep-alive cron enabled but fetch is not available in this Node version.');
+  } else {
+    cron.schedule(keepAliveCron, async () => {
+      try {
+        const response = await fetch(keepAliveUrl, { method: 'GET' });
+        if (!response.ok) {
+          throw new Error(`Keep-alive ping failed with status ${response.status}`);
+        }
+        console.log(`✅ Keep-alive ping: ${keepAliveUrl} (${response.status})`);
+      } catch (error) {
+        console.warn(`⚠️ Keep-alive ping failed: ${error.message}`);
+      }
+    });
+
+    console.log(`🕒 Keep-alive cron scheduled: ${keepAliveCron}`);
+    console.log(`📡 Keep-alive target: ${keepAliveUrl}`);
+  }
+}
 
 export default app;
