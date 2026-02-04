@@ -3,8 +3,8 @@ import { sendSuccess, sendError } from '../utils/errorResponse.js';
 
 const defaultSurveys = [
   {
-    title: 'Survey 1: Summer Program Feedback',
-    description: 'Help us understand your summer experience.',
+    title: 'Survey 1: Program Feedback',
+    description: 'Help us understand your program experience.',
     version: '1.0',
     isActive: true,
     questions: [

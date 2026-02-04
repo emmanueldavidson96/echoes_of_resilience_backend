@@ -3,8 +3,23 @@ import Youth from '../models/Youth.js';
 import Parent from '../models/Parent.js';
 import Coach from '../models/Coach.js';
 import Clinician from '../models/Clinician.js';
+import crypto from 'crypto';
 import { sendTokenResponse } from '../utils/validators.js';
 import { sendSuccess, sendError } from '../utils/errorResponse.js';
+import sendEmail from '../utils/sendEmail.js';
+
+const getFrontendBaseUrl = () => {
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL;
+  }
+
+  const urls = (process.env.FRONTEND_URLS || '')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean);
+
+  return urls[0] || 'http://localhost:3000';
+};
 
 // Register user
 export const register = async (req, res, next) => {
@@ -130,27 +145,64 @@ export const refreshToken = async (req, res, next) => {
   }
 };
 
-// Forgot password (placeholder)
+// Forgot password
 export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
+
     if (!user) {
-      return sendError(res, 404, 'User not found');
+      return sendSuccess(res, 200, 'Password reset email sent', null);
     }
 
-    // TODO: Send password reset email
-    sendSuccess(res, 200, 'Password reset email sent', null);
+    const resetToken = user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    const resetUrl = `${getFrontendBaseUrl()}/reset-password?token=${resetToken}`;
+    const message = `You requested a password reset.\n\nPlease click the link below to reset your password:\n${resetUrl}\n\nIf you did not request this, you can ignore this email.`;
+
+    const emailSent = await sendEmail({
+      to: user.email,
+      subject: 'Echoes of Resilience - Password Reset',
+      text: message,
+      html: `<p>You requested a password reset.</p><p><a href="${resetUrl}">Reset your password</a></p><p>If you did not request this, you can ignore this email.</p>`
+    });
+
+    if (!emailSent && process.env.NODE_ENV === 'production') {
+      user.resetPasswordToken = null;
+      user.resetPasswordExpire = null;
+      await user.save({ validateBeforeSave: false });
+      return sendError(res, 500, 'Email could not be sent');
+    }
+
+    const payload = process.env.NODE_ENV === 'production' ? null : { resetUrl };
+    sendSuccess(res, 200, 'Password reset email sent', payload);
   } catch (error) {
     next(error);
   }
 };
 
-// Reset password (placeholder)
+// Reset password
 export const resetPassword = async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;
-    // TODO: Verify token and update password
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return sendError(res, 400, 'Invalid or expired reset token');
+    }
+
+    user.password = newPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpire = null;
+    await user.save();
+
     sendSuccess(res, 200, 'Password reset successfully', null);
   } catch (error) {
     next(error);

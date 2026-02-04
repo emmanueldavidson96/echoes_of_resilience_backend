@@ -14,6 +14,15 @@ export const validateLogin = [
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
+export const validateForgotPassword = [
+  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+];
+
+export const validateResetPassword = [
+  body('token').notEmpty().withMessage('Reset token is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+];
+
 export const validateMission = [
   body('title').trim().notEmpty().withMessage('Mission title is required'),
   body('description').trim().notEmpty().withMessage('Mission description is required'),
