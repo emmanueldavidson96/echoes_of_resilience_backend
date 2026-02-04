@@ -9,7 +9,13 @@ import {
   resetPassword
 } from '../controllers/authController.js';
 import { protect } from '../middleware/auth.js';
-import { validateRegister, validateLogin, handleValidationErrors } from '../middleware/validation.js';
+import {
+  validateRegister,
+  validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
+  handleValidationErrors
+} from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -21,7 +27,7 @@ router.post('/login', validateLogin, handleValidationErrors, login);
 router.post('/logout', protect, logout);
 router.get('/me', protect, getCurrentUser);
 router.post('/refresh-token', protect, refreshToken);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/forgot-password', validateForgotPassword, handleValidationErrors, forgotPassword);
+router.post('/reset-password', validateResetPassword, handleValidationErrors, resetPassword);
 
 export default router;

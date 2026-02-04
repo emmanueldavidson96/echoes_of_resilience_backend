@@ -5,9 +5,9 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
-    "build": "echo 'No build step needed'",
+    "dev": "node init && nodemon src/server.js",
+    "start": "node init && node src/server.js",
+    "build": "node init && echo 'No build step needed'",
     "lint": "eslint src --fix",
     "create-admin": "node scripts/createUser.js admin",
     "create-coach": "node scripts/createUser.js coach",
@@ -33,7 +33,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.5",
     "morgan": "^1.10.1",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.10.0"
   },
   "devDependencies": {
     "eslint": "^8.50.0",

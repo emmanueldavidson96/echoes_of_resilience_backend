@@ -1,6 +1,4 @@
 # Environment variables
-.env
-.env.local
 .env.*.local
 
 # Dependencies
@@ -16,7 +14,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -35,3 +32,4 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+config.bat
